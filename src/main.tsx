@@ -13,11 +13,13 @@ let model = new TSNE({
 	perplexity: 30.0,
 	earlyExaggeration: 4.0,
 	learningRate: 100.0,
-	nIter: 10000,
+	nIter: 1000,
 	metric: "euclidean",
 })
 
-const dataPath = "http://localhost:8080/qual-o-mat-data/"
+// https://github.com/gockelhahn/qual-o-mat-data/
+const dataPath =
+	"https://cdn.jsdelivr.net/gh/gockelhahn/qual-o-mat-data@master/"
 
 //const tsneWorker = new Worker("worker/worker.ts")
 
