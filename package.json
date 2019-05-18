@@ -3,17 +3,22 @@
 		"dev": "parcel serve index.html",
 		"build": "parcel build --public-url . index.html",
 		"setup-pages": "git worktree add -b gh-pages dist",
-		"pages": "rm -r dist/* && yarn build && cd dist && git add -A . && git commit -m'update binaries'"
+		"pages": "rm -r dist/* && yarn build && cd dist && git add -A . && git commit -m'update binaries'",
+		"generate-schemas": "for f in qual-o-mat-data/schema/*.json; do cat \"$f\" | jq 'if .items then .items.additionalProperties=false else . end' | yarn json2ts -o \"${f%%.*}.ts\"; done"
 	},
 	"dependencies": {
 		"@types/react": "^16.8.17",
 		"@types/react-dom": "^16.8.4",
 		"eslint": "^5.16.0",
+		"fetch-suspense": "^1.1.0",
+		"http-server": "^0.11.1",
+		"json-schema-to-typescript": "^6.1.3",
 		"mobx": "^5.9.4",
 		"mobx-react-lite": "^1.3.2",
 		"parcel": "^1.12.3",
 		"react": "^16.8.6",
-		"react-dom": "^16.8.6"
+		"react-dom": "^16.8.6",
+		"tsne-js": "^1.0.3"
 	},
 	"devDependencies": {
 		"@typescript-eslint/eslint-plugin": "^1.9.0",
