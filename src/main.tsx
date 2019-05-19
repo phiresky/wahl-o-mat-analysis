@@ -5,8 +5,8 @@ import { Observer, observer, useLocalStore } from "mobx-react-lite";
 import React, { Suspense } from "react";
 import { render } from "react-dom";
 import { election as schemas, ElectionList } from "./schemas";
-import { createWorker } from "./worker/simple-worker";
-import { toMain, toWorker } from "./worker/tsneWorker";
+import { createWorker } from "./simple-typed-worker";
+import { TSNEMaster, TSNEWorker } from "./tsneWorker";
 
 const elFiles = Object.keys(schemas) as (keyof typeof schemas)[];
 
@@ -70,14 +70,13 @@ const GUI = observer<{}>(() => {
 			info: [0, 0, 0],
 			status: "wait",
 			async run() {
-				await worker.INPUT_DATA(opinions);
-				this.coords = await worker.RUN(tsneConfig);
+				await worker.setData(opinions);
+				this.coords = await worker.run(tsneConfig);
 			},
 		});
-		const worker = createWorker<toMain, toWorker>(
+		const worker = createWorker<TSNEMaster, TSNEWorker>(
 			new Worker("./worker/tsneWorker.ts"),
 			{
-				async STATUS() {},
 				async progressData(data) {
 					obj.coords = data;
 				},

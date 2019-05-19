@@ -1,24 +1,23 @@
-import TSNE from "../../tsne-js/src/index.js";
-import { simpleWorker } from "./simple-worker";
+import TSNE from "../tsne-js/src/index.js";
+import { declareWorker } from "./simple-typed-worker";
 
-export type toMain = {
-	STATUS: (s: "BUSY" | "READY") => Promise<void>;
+export type TSNEMaster = {
 	progressIter(iter: [number, number, number]): Promise<void>;
 	progressStatus(status: string): Promise<void>;
 	progressData(data: [number, number][]): Promise<void>;
 };
-export type toWorker = {
-	INPUT_DATA: (d: number[][]) => Promise<void>;
-	RUN: (d: {
+export type TSNEWorker = {
+	setData(d: number[][]): Promise<void>;
+	run(d: {
 		perplexity: number;
 		earlyExaggeration: number;
 		learningRate: number;
 		nIter: number;
 		metric: string;
-	}) => Promise<any>;
+	}): Promise<[number, number][]>;
 };
 const maxFps = 1 / 30;
-simpleWorker<toMain, toWorker>(async rpc => {
+declareWorker<TSNEMaster, TSNEWorker>(async rpc => {
 	var model = new TSNE({
 		dim: 2,
 		perplexity: 30.0,
@@ -30,6 +29,7 @@ simpleWorker<toMain, toWorker>(async rpc => {
 
 	let lastIter = performance.now();
 	model.on("progressIter", iter => {
+		// forcefully slow it down
 		while (performance.now() - lastIter < 1 / maxFps);
 		lastIter = performance.now();
 		// data: [iter, error, gradNorm]
@@ -50,18 +50,14 @@ simpleWorker<toMain, toWorker>(async rpc => {
 
 	var firstRun = true;
 	return {
-		INPUT_DATA: async data => {
+		async setData(data) {
 			model.init({
 				data,
 				type: "dense",
 			});
 		},
-		RUN: async data => {
-			model.perplexity = data.perplexity;
-			model.earlyExaggeration = data.earlyExaggeration;
-			model.learningRate = data.learningRate;
-			model.nIter = data.nIter;
-			model.metric = data.metric;
+		async run(data) {
+			Object.assign(model, data);
 			if (firstRun) {
 				model.run();
 				firstRun = false;
