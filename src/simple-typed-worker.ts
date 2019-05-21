@@ -12,7 +12,7 @@ type PostMessageData =
 	| { type: "call"; rpc: CallData }
 	| { type: "callback"; cb: CallbackData };
 
-type RemoteInterface = { [k: string]: (...args: any) => Promise<any> };
+export type RemoteInterface = { [k: string]: (...args: any) => Promise<any> };
 
 /** create a map of unfinished callbacks */
 function callbackStore() {
@@ -121,14 +121,29 @@ export function declareWorker<
 		self as any, // DedicatedWorkerGlobalScope
 		new Promise(r => (resolveLocal = r)),
 	);
-	init(toMain).then(resolveLocal);
+	init(toMain)
+		.then(typedWorker => {
+			// save to global object for debugging
+			Object.assign(self, { typedWorker });
+		})
+		.then(resolveLocal);
 }
 
+/**
+ * Create a simple typed worker.
+ *
+ * You need to pass a created worker instead of the filename because otherwise bundlers like webpack or parcel won't be able to understand it
+ *
+ * createWorker(new Worker("filename.ts"), {...})
+ */
 export function createWorker<
 	TMaster extends RemoteInterface,
 	TWorker extends RemoteInterface
->(worker: Worker, handler: TMaster): TWorker {
+>(worker: Worker, handler: TMaster): TWorker & { worker: Worker } {
 	if (typeof window === "undefined")
 		throw Error(`call this function from the main browser thread`);
-	return getRpcProxy<TMaster, TWorker>(worker, Promise.resolve(handler));
+	const rpc = getRpcProxy<TMaster, TWorker>(worker, Promise.resolve(handler));
+	const o = Object.create(rpc);
+	o.worker = worker;
+	return o;
 }
