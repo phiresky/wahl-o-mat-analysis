@@ -44,6 +44,40 @@
 			"git add"
 		]
 	},
+	"prettier": {
+		"semi": true,
+		"tabWidth": 4,
+		"useTabs": true,
+		"trailingComma": "all",
+		"printWidth": 80,
+		"endOfLine": "lf"
+	},
+	"eslintConfig": {
+		"extends": [
+			"eslint:recommended",
+			"airbnb",
+			"plugin:@typescript-eslint/recommended",
+			"plugin:react/recommended",
+			"prettier",
+			"prettier/@typescript-eslint"
+		],
+		"plugins": [
+			"prettier",
+			"@typescript-eslint"
+		],
+		"env": {
+			"es6": true,
+			"browser": true,
+			"node": true
+		},
+		"parser": "@typescript-eslint/parser",
+		"rules": {
+			"prettier/prettier": [
+				"warn"
+			],
+			"no-console": "off"
+		}
+	},
 	"browserslist": [
 		"last 1 Chrome version"
 	]
