@@ -92,6 +92,8 @@ function getRpcProxy<
 			cb.payload = await local[p.name](...p.args);
 		} catch (e) {
 			cb.type = "reject";
+			if (e instanceof Error)
+				e = { message: e.message, name: e.name, stack: e.stack };
 			cb.payload = e;
 		} finally {
 			eventHandle.postMessage({ type: "callback", cb });
@@ -125,6 +127,7 @@ export function declareWorker<
 		.then(typedWorker => {
 			// save to global object for debugging
 			Object.assign(self, { typedWorker });
+			return typedWorker;
 		})
 		.then(resolveLocal);
 }
